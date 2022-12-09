@@ -1,0 +1,154 @@
+
+&GLOBAL
+  PROJECT free_ion
+  RUN_TYPE ENERGY
+&END GLOBAL
+
+
+&FORCE_EVAL
+  METHOD              Quickstep
+
+  &DFT
+    UKS T
+    CHARGE 3
+    MULTIPLICITY 6
+    BASIS_SET_FILE_NAME /work/e686/e686/shared/cp2k_basis/BASIS_ADMM
+    BASIS_SET_FILE_NAME /work/e686/e686/shared/cp2k_basis/BASIS_MOLOPT
+    POTENTIAL_FILE_NAME /work/e686/e686/shared/cp2k_basis/GTH_POTENTIALS
+   ! 
+   ! ONLY USE BELOW FOR HYBRID FUNCTIONALS
+   ! &AUXILIARY_DENSITY_MATRIX_METHOD
+   !   METHOD BASIS_PROJECTION
+   !   ADMM_PURIFICATION_METHOD MO_DIAG
+   ! &END AUXILIARY_DENSITY_MATRIX_METHOD
+   !
+   ! Plane wave basis set size/energy cut off below
+    &MGRID
+      CUTOFF 600
+    &END MGRID
+   !accuracy of convergence
+    &QS
+      EPS_DEFAULT 1.00E-12
+    &END QS
+
+    &SCF
+      SCF_GUESS  RESTART
+      MAX_SCF 40
+      EPS_SCF     1E-06
+
+      &OT
+      MINIMIZER DIIS
+      PRECONDITIONER FULL_SINGLE_INVERSE
+      &END OT
+
+      &OUTER_SCF
+        MAX_SCF 60
+        EPS_SCF     1E-06
+      &END OUTER_SCF
+    &END SCF
+
+     &XC
+       DENSITY_CUTOFF     1.0000000000000000E-10
+       GRADIENT_CUTOFF     1.0000000000000000E-10
+       TAU_CUTOFF     1.0000000000000000E-10
+       &XC_FUNCTIONAL  NO_SHORTCUT
+         &PBE  T
+	  !WHEN CHANGE TO HYBRID DFT SWITCH OFF X THEN LET XWPBE TAKE CARE OF EXCHANGE
+           SCALE_X     1.0000000000000000E+00
+           SCALE_C     1.0000000000000000E+00
+         &END PBE
+	! below only for hybrid
+
+!         &XWPBE  T
+!          SCALE_X    -1.2000000000000000E-01
+!           SCALE_X0     1.0000000000000000E+00
+!           OMEGA     1.1000000000000000E-01
+!         &END XWPBE
+       &END XC_FUNCTIONAL
+!     
+!	ONly need HF if doing hybrid so uncomment for hybrid
+!	  &HF
+!         FRACTION     1.2000000000000000E-01
+!         &SCREENING
+!           EPS_SCHWARZ     1.0000000000000000E-04
+!           SCREEN_ON_INITIAL_P  F
+!         &END SCREENING
+!         &INTERACTION_POTENTIAL
+!           POTENTIAL_TYPE  SHORTRANGE
+!           OMEGA     1.1000000000000000E-01
+!         &END INTERACTION_POTENTIAL
+!         &MEMORY
+!           EPS_STORAGE_SCALING     1.0000000000000001E-01
+!           MAX_MEMORY  2400
+!         &END MEMORY
+!       &END HF
+!       &VDW_POTENTIAL
+!         POTENTIAL_TYPE  PAIR_POTENTIAL
+!         &PAIR_POTENTIAL
+!           TYPE  DFTD3
+!           PARAMETER_FILE_NAME dftd3.dat
+!           REFERENCE_FUNCTIONAL PBE0
+!         &END PAIR_POTENTIAL
+!       &END VDW_POTENTIAL
+     &END XC
+
+    &PRINT
+      &HIRSHFELD
+        FILENAME charges
+        SHAPE_FUNCTION  DENSITY
+      &END HIRSHFELD
+    &END PRINT
+  &END DFT
+  &SUBSYS
+    &CELL
+
+	ABC 15.52125 15.52125 15.52125
+
+    &END CELL
+    &TOPOLOGY
+
+	COORD_FILE_NAME last-frame.xyz
+
+    &END TOPOLOGY
+
+    &KIND Fe
+
+      ELEMENT Fe
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      BASIS_SET AUX_FIT cFIT11
+      POTENTIAL GTH-PBE-q16
+     ! defines the spin state of the iron - only need to do if multiple irons of diff spin state becau	   ! because multiplicity command earlier takes care of it 
+
+!      &BS
+!        &ALPHA
+!          NEL -6  -2
+!          L    2   0
+!          N    3   4
+!        &END ALPHA
+!
+!        &BETA
+!          NEL +4  -2
+!          L    2  00
+!          N    3   4
+!        &END BETA
+!      &END BS
+    &END KIND
+
+    &KIND O
+      ELEMENT O
+      BASIS_SET AUX_FIT cpFIT3
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE-q6
+    &END KIND
+
+    &KIND H
+      ELEMENT H
+      BASIS_SET TZVP-MOLOPT-GTH
+      BASIS_SET AUX_FIT cpFIT3
+      POTENTIAL GTH-PBE-q1
+    &END KIND
+ 
+  &END SUBSYS
+&END FORCE_EVAL
+
+
